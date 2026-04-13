@@ -1,45 +1,26 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Code2, Globe, Brain, Wrench } from 'lucide-react';
+import { usePortfolio } from '@/hooks/usePortfolio';
 
-const skillCategories = [
-  {
-    id: 'languages',
-    title: 'Languages & Core',
-    label: 'LANG',
-    color: '#ff2a6d',
-    Icon: Code2,
-    skills: ['Python', 'Java', 'JavaScript', 'SQL', 'DSA', 'OOP'],
-  },
-  {
-    id: 'webcloud',
-    title: 'Web Dev & Cloud',
-    label: 'WEB',
-    color: '#05d9e8',
-    Icon: Globe,
-    skills: ['React.js', 'Node.js', 'HTML/CSS', 'AWS', 'REST APIs'],
-  },
-  {
-    id: 'aiml',
-    title: 'AI / ML',
-    label: 'AI',
-    color: '#b743e8',
-    Icon: Brain,
-    skills: ['TensorFlow', 'OpenCV', 'scikit-learn', 'NLP', 'LangChain'],
-  },
-  {
-    id: 'tools',
-    title: 'Tools & Databases',
-    label: 'TOOLS',
-    color: '#ffb800',
-    Icon: Wrench,
-    skills: ['Git', 'GitHub', 'Postman', 'MySQL', 'VS Code'],
-  },
-];
+const iconMap = {
+  Code2,
+  Globe,
+  Brain,
+  Wrench,
+};
 
 const Skills = () => {
+  const data = usePortfolio();
+  const skillCategories = data?.skills || [];
   const [activeIdx, setActiveIdx] = useState(0);
-  const active = skillCategories[activeIdx];
+  
+  // Safe access for active category
+  const active = (skillCategories && skillCategories.length > 0) 
+    ? skillCategories[activeIdx] || skillCategories[0] 
+    : { id: 'fallback', title: 'Skills', label: 'SKILLS', color: '#05d9e8', icon: 'Code2', skills: [] };
+
+  const ActiveIcon = iconMap[active.icon as keyof typeof iconMap] || Code2;
 
   return (
     <section id="skills" className="relative min-h-screen flex items-center justify-center px-4 py-32">
@@ -58,7 +39,7 @@ const Skills = () => {
             <p className="text-white/50 font-mono text-xs tracking-[0.3em] uppercase">District 02</p>
           </div>
           <h2 className="font-display text-5xl sm:text-6xl md:text-7xl font-bold text-white mb-3"
-            style={{ textShadow: '0 0 40px rgba(255,42,109,0.3)' }}>
+            style={{ textShadow: `0 0 40px ${active.color}4d` }}>
             The Skill Grid
           </h2>
           <p className="text-white/40 font-mono text-sm tracking-widest uppercase">Technologies & Expertise</p>
@@ -72,9 +53,9 @@ const Skills = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          {skillCategories.map((cat, i) => {
+          {skillCategories.map((cat: any, i: number) => {
             const isActive = activeIdx === i;
-            const CatIcon = cat.Icon;
+            const CatIcon = iconMap[cat.icon as keyof typeof iconMap] || Code2;
             return (
               <button
                 key={cat.id}
@@ -130,13 +111,13 @@ const Skills = () => {
               </div>
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center border-2"
                 style={{ borderColor: `${active.color}40`, background: `${active.color}10` }}>
-                <active.Icon size={24} strokeWidth={1.5} style={{ color: active.color }} />
+                <ActiveIcon size={24} strokeWidth={1.5} style={{ color: active.color }} />
               </div>
             </div>
 
             {/* Skills Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {active.skills.map((skill, i) => (
+              {active.skills.map((skill: string, i: number) => (
                 <motion.div
                   key={skill}
                   className="group relative flex items-center gap-3 px-5 py-4 rounded-xl border cursor-default transition-all duration-200"

@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text, Billboard } from '@react-three/drei';
 import * as THREE from 'three';
-import { gameState, gameTick, fireBullet, UFO_CONFIGS, type UFO as UFOType, type PowerUp as PowerUpType, type Tower as TowerType } from './gameState';
+import { gameState, gameTick, fireBullet, fireRocket, UFO_CONFIGS, type UFO as UFOType, type PowerUp as PowerUpType, type Tower as TowerType } from './gameState';
 import { cameraMode } from './CameraRig';
 
 // Reusable temp objects — module scope to avoid GC
@@ -224,6 +224,74 @@ const EnemyBullets = () => {
 
   return (
     <instancedMesh ref={meshRef} args={[geo, mat, MAX]} frustumCulled={false} />
+  );
+};
+
+// ============================================================
+// INSTANCED ROCKET RENDERER
+// ============================================================
+
+const PlayerRockets = () => {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const trailRef = useRef<THREE.InstancedMesh>(null);
+  const MAX = 10;
+
+  const rocketGeo = useMemo(() => new THREE.CylinderGeometry(0.2, 0.2, 1.2, 8), []);
+  const trailGeo = useMemo(() => new THREE.SphereGeometry(0.4, 8, 8), []);
+  
+  const rocketMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: '#ffaa00', emissive: '#ff4400', emissiveIntensity: 2, toneMapped: false
+  }), []);
+  
+  const trailMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: '#ff6600', transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false
+  }), []);
+
+  useFrame(() => {
+    const mesh = meshRef.current;
+    const trail = trailRef.current;
+    if (!mesh || !trail) return;
+
+    let count = 0;
+    for (let i = 0; i < gameState.rockets.length && count < MAX; i++) {
+      const r = gameState.rockets[i];
+      if (!r.alive) continue;
+
+      _dir.set(r.velocity[0], r.velocity[1], r.velocity[2]).normalize();
+      _quat.setFromUnitVectors(_up, _dir);
+      _pos.set(r.position[0], r.position[1], r.position[2]);
+      
+      _mat4.compose(_pos, _quat, _scale);
+      mesh.setMatrixAt(count, _mat4);
+
+      // Trail
+      _pos.set(
+        r.position[0] - _dir.x * 0.8,
+        r.position[1] - _dir.y * 0.8,
+        r.position[2] - _dir.z * 0.8
+      );
+      const s = 1.0 + Math.random() * 0.5;
+      _scale.set(s, s, s);
+      _mat4.compose(_pos, _quat, _scale);
+      trail.setMatrixAt(count, _mat4);
+      _scale.set(1, 1, 1);
+
+      count++;
+    }
+
+    mesh.count = count;
+    trail.count = count;
+    if (count > 0) {
+      mesh.instanceMatrix.needsUpdate = true;
+      trail.instanceMatrix.needsUpdate = true;
+    }
+  });
+
+  return (
+    <>
+      <instancedMesh ref={meshRef} args={[rocketGeo, rocketMat, MAX]} frustumCulled={false} />
+      <instancedMesh ref={trailRef} args={[trailGeo, trailMat, MAX]} frustumCulled={false} />
+    </>
   );
 };
 
@@ -458,7 +526,24 @@ export const CombatSystem = () => {
     };
 
     window.addEventListener('drone-fire', onFire);
-    return () => window.removeEventListener('drone-fire', onFire);
+
+    const onFireRocket = () => {
+      if (!gameState.combatActive || gameState.gameOver || gameState.countdownActive) return;
+      fireDir.set(0, 0, -1).applyQuaternion(camera.quaternion);
+      firePos.copy(camera.position).addScaledVector(fireDir, 1.5);
+
+      fireRocket(
+        [firePos.x, firePos.y, firePos.z] as [number, number, number],
+        [fireDir.x, fireDir.y, fireDir.z] as [number, number, number]
+      );
+    };
+
+    window.addEventListener('drone-fire-rocket', onFireRocket);
+
+    return () => {
+      window.removeEventListener('drone-fire', onFire);
+      window.removeEventListener('drone-fire-rocket', onFireRocket);
+    };
   }, [camera]);
 
   useFrame((_, delta) => {
@@ -493,6 +578,9 @@ export const CombatSystem = () => {
 
       {/* Enemy Bullets — single instanced draw call */}
       <EnemyBullets />
+
+      {/* Player Rockets */}
+      <PlayerRockets />
 
       {/* Power-Ups */}
       {gameState.powerUps.map(pu =>

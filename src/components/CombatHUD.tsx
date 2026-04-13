@@ -35,6 +35,13 @@ const CombatHUD = () => {
   const [stats, setStats] = useState(gameState.stats);
   const [towers, setTowers] = useState(gameState.towers);
   const [gameOverReason, setGameOverReason] = useState('');
+
+  // Phase 3 extensions
+  const [rockets, setRockets] = useState(5);
+  const [boostEnergy, setBoostEnergy] = useState(100);
+  const [isBoosting, setIsBoosting] = useState(false);
+  const [currentDialogue, setCurrentDialogue] = useState<any>(null);
+
   const overlayRef = useRef<HTMLDivElement>(null);
 
   // Sync state from gameState at ~10fps (reduced for perf)
@@ -57,25 +64,11 @@ const CombatHUD = () => {
       setCountdownActive(gameState.countdownActive);
       setStats({ ...gameState.stats });
 
-      // Only copy arrays when their content actually changed
-      if (gameState.killFeed.length !== prevLens.current.kf) {
-        setKillFeed([...gameState.killFeed]);
-        prevLens.current.kf = gameState.killFeed.length;
-      }
-      if (gameState.towers.length !== prevLens.current.tw || gameState.towers.some((t, i) => {
-        const prev = towers[i];
-        return prev && (t.hp !== prev.hp || t.alive !== prev.alive);
-      })) {
-        setTowers([...gameState.towers]);
-        prevLens.current.tw = gameState.towers.length;
-      }
-
-      // Count alive enemies without .filter() allocation
-      let aliveCount = 0;
-      for (let i = 0; i < gameState.enemies.length; i++) {
-        if (gameState.enemies[i].alive) aliveCount++;
-      }
-      setEnemyCount(aliveCount);
+      // Phase 3 Sync
+      setRockets(gameState.rocketCount);
+      setBoostEnergy(gameState.boostEnergy);
+      setIsBoosting(gameState.isBoosting);
+      setCurrentDialogue(gameState.currentDialogue);
 
       // Boundary warning check
       const tel = (window as any).__droneTelemetry;
@@ -350,7 +343,7 @@ const CombatHUD = () => {
       </AnimatePresence>
 
       {/* ===== TOP BAR ===== */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none flex items-center gap-4">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none flex flex-col items-center gap-2">
         <div className="flex items-center gap-3 px-5 py-2 rounded-xl" style={panelStyle}>
           <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
           <span className="font-mono text-[11px] text-red-400 tracking-wider font-bold">
@@ -361,6 +354,28 @@ const CombatHUD = () => {
           </span>
         </div>
       </div>
+
+      {/* ===== DIALOGUE OVERLAY ===== */}
+      <AnimatePresence>
+        {currentDialogue && (
+          <motion.div
+            className="absolute bottom-24 left-1/2 -translate-x-1/2 z-[60] pointer-events-none"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.05 }}
+          >
+            <div className="px-8 py-5 rounded-2xl border-2 border-cyan-400/30 bg-black/80 backdrop-blur-xl max-w-xl text-center shadow-[0_0_40px_rgba(5,217,232,0.15)]">
+               <p className="font-mono text-[9px] tracking-[0.4em] text-cyan-400 uppercase mb-2">Transmission Inbound</p>
+               <p className="font-display text-lg text-white leading-relaxed">
+                 {currentDialogue.text}
+               </p>
+               <div className="mt-3 flex justify-center gap-1">
+                 {[1,2,3].map(i => <div key={i} className="w-1 h-1 rounded-full bg-cyan-400/50 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />)}
+               </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ===== HEALTH BAR — Top Left ===== */}
       <div className="absolute top-4 left-6 pointer-events-none">
@@ -434,23 +449,64 @@ const CombatHUD = () => {
         </div>
       )}
 
-      {/* ===== AMMO — Bottom Center ===== */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
-        <div className="rounded-xl px-6 py-3 flex items-center gap-4" style={panelStyle}>
-          <span className="font-mono text-[9px] tracking-[0.3em] text-white/30 uppercase">Ammo</span>
-          <div className="flex items-center gap-2">
-            <span className={`font-mono text-lg font-bold ${ammoPct > 20 ? 'text-cyan-400' : 'text-red-400 animate-pulse'}`}>
-              {ammo}
-            </span>
-            <span className="font-mono text-[10px] text-white/30">/ {gameState.maxAmmo}</span>
+      {/* ===== AMMO + ROCKETS — Bottom Center ===== */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none flex flex-col items-center gap-3">
+        <div className="rounded-xl px-6 py-3 flex items-center gap-6" style={panelStyle}>
+          {/* Main Ammo */}
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[9px] tracking-[0.3em] text-white/30 uppercase">Ammo</span>
+            <div className="flex items-center gap-2">
+              <span className={`font-mono text-lg font-bold ${ammoPct > 20 ? 'text-cyan-400' : 'text-red-400 animate-pulse'}`}>
+                {ammo}
+              </span>
+              <div className="w-20 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-300 bg-cyan-400"
+                  style={{ width: `${ammoPct}%`, boxShadow: '0 0 6px rgba(5,217,232,0.5)' }}
+                />
+              </div>
+            </div>
           </div>
-          <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-300 bg-cyan-400"
-              style={{ width: `${ammoPct}%`, boxShadow: '0 0 6px rgba(5,217,232,0.5)' }}
-            />
+
+          <div className="w-px h-6 bg-white/10" />
+
+          {/* Rockets */}
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[9px] tracking-[0.3em] text-white/30 uppercase">Rockets</span>
+            <div className="flex gap-1">
+              {[...Array(gameState.maxRockets)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`w-1.5 h-3 rounded-sm transition-all duration-300 ${i < rockets ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]' : 'bg-white/5'}`}
+                />
+              ))}
+            </div>
+            <span className="font-mono text-xs text-white/60 ml-1">{rockets}</span>
           </div>
-          <span className="font-mono text-[10px] text-white/30 ml-2">{formatTime(stats.timeSurvived)}</span>
+
+          <div className="w-px h-6 bg-white/10" />
+
+          <span className="font-mono text-[10px] text-white/30">{formatTime(stats.timeSurvived)}</span>
+        </div>
+      </div>
+
+      {/* ===== BOOST ENERGY — Bottom Right ===== */}
+      <div className="absolute bottom-6 right-6 pointer-events-none">
+        <div className="rounded-xl p-4 min-w-[180px]" style={panelStyle}>
+           <div className="flex justify-between items-center mb-2">
+             <span className="font-mono text-[9px] tracking-[0.3em] text-white/30 uppercase">Boost Energy</span>
+             <span className={`font-mono text-xs font-bold ${isBoosting ? 'text-orange-400 animate-pulse' : 'text-white/60'}`}>
+               {Math.floor(boostEnergy)}%
+             </span>
+           </div>
+           <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+             <motion.div 
+               className={`h-full rounded-full ${isBoosting ? 'bg-orange-500' : 'bg-white/40'}`}
+               animate={{ width: `${boostEnergy}%` }}
+               transition={{ type: 'spring', bounce: 0, duration: 0.1 }}
+               style={{ boxShadow: isBoosting ? '0 0 10px rgba(249,115,22,0.8)' : 'none' }}
+             />
+           </div>
         </div>
       </div>
 
@@ -570,14 +626,15 @@ const CombatHUD = () => {
         </div>
       </div>
 
-      {/* ===== CONTROLS — Bottom Right ===== */}
-      <div className="absolute bottom-6 right-6 pointer-events-none">
+      {/* ===== CONTROLS — Bottom Right (Moved up for Boost) ===== */}
+      <div className="absolute bottom-28 right-6 pointer-events-none">
         <div className="rounded-lg px-3 py-2" style={{ ...panelStyle, opacity: 0.6 }}>
           <div className="space-y-1 text-white/40 font-mono text-[9px]">
             <div className="flex gap-2"><span className="text-white/60 w-12">L-Click</span><span>Fire</span></div>
+            <div className="flex gap-2"><span className="text-orange-400 w-12">R-Click</span><span>Rocket</span></div>
             <div className="flex gap-2"><span className="text-white/60 w-12">W A S D</span><span>Move</span></div>
             <div className="flex gap-2"><span className="text-white/60 w-12">Space</span><span>Ascend</span></div>
-            <div className="flex gap-2"><span className="text-white/60 w-12">Shift</span><span>Turbo</span></div>
+            <div className="flex gap-2"><span className="text-orange-400 w-12">Shift</span><span>Boost</span></div>
           </div>
         </div>
       </div>

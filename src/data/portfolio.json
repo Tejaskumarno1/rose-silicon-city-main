@@ -1,0 +1,116 @@
+{
+  "projects": [
+    {
+      "title": "AI Multi-Agent Recruitment SaaS",
+      "subtitle": "MAHAYUDH",
+      "description": "Architected a Jarvis-like system of 8 specialised AI agents handling the full recruitment pipeline — JD parsing, resume scoring, candidate matching, automated screening calls, ranking, and skill assessment — cutting simulated recruiter effort by ~60%.",
+      "tech": ["Python", "TensorFlow", "React.js", "Node.js", "LangChain", "AWS"],
+      "stats": [
+        { "label": "Effort Reduced", "value": "60%" },
+        { "label": "AI Agents", "value": "8" }
+      ],
+      "color": "#05d9e8",
+      "githubUrl": "",
+      "liveUrl": ""
+    },
+    {
+      "title": "AI Traffic Optimizer",
+      "subtitle": "Computer Vision",
+      "description": "Designed a real-time multi-lane traffic monitoring system using OpenCV and a custom-trained deep learning model to detect congestion patterns and rule violations with ~89% accuracy. Built an automated signal control engine that dynamically recalculates timings.",
+      "tech": ["Python", "OpenCV", "TensorFlow", "Deep Learning"],
+      "stats": [
+        { "label": "Accuracy", "value": "89%" },
+        { "label": "Wait Time", "value": "-30%" }
+      ],
+      "color": "#ff2a6d",
+      "githubUrl": "",
+      "liveUrl": ""
+    }
+  ],
+  "skills": [
+    {
+      "id": "languages",
+      "title": "Languages & Core",
+      "label": "LANG",
+      "color": "#ff2a6d",
+      "icon": "Code2",
+      "skills": ["Python", "Java", "JavaScript", "SQL", "DSA", "OOP"]
+    },
+    {
+      "id": "webcloud",
+      "title": "Web Dev & Cloud",
+      "label": "WEB",
+      "color": "#05d9e8",
+      "icon": "Globe",
+      "skills": ["React.js", "Node.js", "HTML/CSS", "AWS", "REST APIs"]
+    },
+    {
+      "id": "aiml",
+      "title": "AI / ML",
+      "label": "AI",
+      "color": "#b743e8",
+      "icon": "Brain",
+      "skills": ["TensorFlow", "OpenCV", "scikit-learn", "NLP", "LangChain"]
+    },
+    {
+      "id": "tools",
+      "title": "Tools & Databases",
+      "label": "TOOLS",
+      "color": "#ffb800",
+      "icon": "Wrench",
+      "skills": ["Git", "GitHub", "Postman", "MySQL", "VS Code"]
+    }
+  ],
+  "certifications": [
+    {
+      "title": "AVISHKAAR Season 3",
+      "subtitle": "Phase 2 — National Level Hackathon",
+      "date": "2024",
+      "description": "Selected among top national teams for building a multi-agent AI SaaS recruitment platform at AITAM Tekkali.",
+      "color": "#ff2a6d",
+      "icon": "Trophy"
+    },
+    {
+      "title": "Smart India Hackathon",
+      "subtitle": "Level 1 — National Level",
+      "date": "2024",
+      "description": "Cleared internal rounds to represent SR University nationally in the Govt. of India initiative.",
+      "color": "#05d9e8",
+      "icon": "Building2"
+    },
+    {
+      "title": "SRU Startup Club",
+      "subtitle": "Web Developer & Designer",
+      "date": "Aug 2024 – Present",
+      "description": "Led end-to-end development of the club website (React.js, Node.js, AWS), increasing online event registrations by ~40%. Mentored 3 junior members.",
+      "color": "#b743e8",
+      "icon": "Laptop"
+    },
+    {
+      "title": "AWS Academy & Google",
+      "subtitle": "Professional Certifications",
+      "date": "2024",
+      "description": "AWS Cloud Foundations, AWS Cloud Developing, and Google Data Analytics Professional Certificate.",
+      "color": "#ffb800",
+      "icon": "Award"
+    }
+  ],
+  "about": {
+    "description": "3rd-year CSE undergrad at SR University (Class of 2027) specialising in AI/ML and full-stack development. 150+ LeetCode problems solved; national/finalist rounds in 4 hackathons. Seeking a software engineering internship in backend, AI, or product engineering.",
+    "tags": ["AI / ML", "Full Stack", "150+ LC"],
+    "education": {
+      "school": "SR University",
+      "degree": "Computer Science Eng.",
+      "cgpa": "7.68",
+      "years": "2023 — 2027"
+    },
+    "coursework": ["DSA", "Operating Systems", "DBMS", "Computer Networks"]
+  },
+  "social": {
+    "resumeUrl": "/resume.pdf",
+    "linkedin": "https://linkedin.com/in/boddu-tejas-kumar",
+    "github": "https://github.com/Tejaskumarno1",
+    "leetcode": "https://leetcode.com",
+    "email": "tejaskumarwgl@gmail.com"
+  }
+}

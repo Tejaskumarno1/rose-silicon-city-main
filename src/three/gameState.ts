@@ -57,6 +57,15 @@ export interface EnemyBullet {
   color: string;
 }
 
+export interface Rocket {
+  id: number;
+  position: [number, number, number];
+  velocity: [number, number, number];
+  alive: boolean;
+  age: number;
+  targetId: number; // UFO id to track
+}
+
 export interface PowerUp {
   id: number;
   position: [number, number, number];
@@ -77,6 +86,12 @@ export interface KillFeedEntry {
   points: number;
   time: number;
   isCritical?: boolean;
+}
+
+export interface Dialogue {
+  text: string;
+  duration: number; // in seconds
+  sender?: string;
 }
 
 export interface GameStats {
@@ -139,7 +154,7 @@ function getAudioCtx(): AudioContext {
   return audioCtx;
 }
 
-export function playSound(type: 'shoot' | 'hit' | 'kill' | 'damage' | 'powerup' | 'combo' | 'wave' | 'countdown' | 'victory' | 'gameover' | 'critical' | 'enemyshoot' | 'towerdamage') {
+export function playSound(type: 'shoot' | 'hit' | 'kill' | 'damage' | 'powerup' | 'combo' | 'wave' | 'countdown' | 'victory' | 'gameover' | 'critical' | 'enemyshoot' | 'towerdamage' | 'rocket' | 'boost' | 'dialogue') {
   try {
     // Throttle high-frequency sounds to prevent audio node pile-up
     const minInterval = SOUND_MIN_INTERVAL[type];
@@ -308,6 +323,36 @@ export function playSound(type: 'shoot' | 'hit' | 'kill' | 'damage' | 'powerup' 
         osc.stop(now + 0.45);
         break;
       }
+      case 'rocket': {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(100, now);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.5);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        osc.start(now);
+        osc.stop(now + 0.5);
+        break;
+      }
+      case 'boost': {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+        break;
+      }
+      case 'dialogue': {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.setValueAtTime(1200, now + 0.05);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.start(now);
+        osc.stop(now + 0.15);
+        break;
+      }
     }
   } catch {
     // Audio not available, ignore silently
@@ -340,6 +385,20 @@ export const gameState = {
   powerUps: [] as PowerUp[],
   killFeed: [] as KillFeedEntry[],
   towers: [] as Tower[],
+
+  // Advanced Combat
+  rockets: [] as Rocket[],
+  rocketCount: 5,
+  maxRockets: 10,
+  rocketRechargeTimer: 0,
+  boostEnergy: 100,
+  maxBoostEnergy: 100,
+  isBoosting: false,
+
+  // Narrative System
+  dialogueQueue: [] as Dialogue[],
+  currentDialogue: null as Dialogue | null,
+  dialogueTimer: 0,
 
   waveTimer: 0,
   waveCooldown: 5,
@@ -441,28 +500,70 @@ export function startCombat() {
   gameState.countdownTimer = 1.0;
   playSound('countdown');
 
+  gameState.rocketCount = 5;
+  gameState.rocketRechargeTimer = 0;
+  gameState.boostEnergy = 100;
+  gameState.isBoosting = false;
+  gameState.rockets = [];
+  gameState.dialogueQueue = [];
+  gameState.currentDialogue = null;
+  gameState.dialogueTimer = 0;
+
+  // Initial welcome dialogue
+  triggerDialogue("SYSTEM ONLINE. City defense protocols initialized by TEJAS.", 4);
+
   window.dispatchEvent(new CustomEvent('combat-started'));
 }
 
 export function endCombat() {
   gameState.combatActive = false;
-  gameState.enemies = [];
-  gameState.bullets = [];
-  gameState.enemyBullets = [];
-  gameState.explosions = [];
-  gameState.powerUps = [];
-  gameState.killFeed = [];
-  gameState.towers = [];
   gameState.gameOver = false;
   gameState.victory = false;
-  gameState.countdownActive = false;
-
-  // Release pointer lock so user can interact with the page again
+  
+  // Release pointer lock so UI is usable
   if (document.pointerLockElement) {
     document.exitPointerLock();
   }
 
   window.dispatchEvent(new CustomEvent('combat-ended'));
+}
+
+export function triggerDialogue(text: string, duration = 3) {
+  gameState.dialogueQueue.push({ text, duration });
+  if (gameState.dialogueQueue.length > 5) gameState.dialogueQueue.shift();
+}
+
+export function fireRocket(pos: [number, number, number], dir: [number, number, number]) {
+  if (gameState.rocketCount <= 0 || gameState.countdownActive) return;
+
+  gameState.rocketCount--;
+  gameState.muzzleFlashTimer = 0.1;
+
+  // Find target (nearest alive enemy)
+  let bestTarget = -1;
+  let minDistSq = 10000;
+  for (const ufo of gameState.enemies) {
+    if (!ufo.alive) continue;
+    const dx = ufo.position[0] - pos[0];
+    const dy = ufo.position[1] - pos[1];
+    const dz = ufo.position[2] - pos[2];
+    const dSq = dx * dx + dy * dy + dz * dz;
+    if (dSq < minDistSq) {
+      minDistSq = dSq;
+      bestTarget = ufo.id;
+    }
+  }
+
+  gameState.rockets.push({
+    id: nextId++,
+    position: [...pos],
+    velocity: [dir[0] * 30, dir[1] * 30, dir[2] * 30],
+    alive: true,
+    age: 0,
+    targetId: bestTarget
+  });
+
+  playSound('rocket');
 }
 
 export function fireBullet(pos: [number, number, number], dir: [number, number, number]) {
@@ -694,6 +795,13 @@ export function damagePlayer(amount: number, fromPos?: [number, number, number])
 
   if (gameState.health <= 0) {
     triggerGameOver('Player destroyed');
+  } else if (gameState.health < 40 && amount > 0) {
+    // Low health warning (once every 10s max)
+    const now = performance.now();
+    if (now - (soundThrottle['health_alert'] || 0) > 10000) {
+      triggerDialogue("WARNING: Hull integrity compromised. Evasive maneuvers required, Tejas!", 4);
+      soundThrottle['health_alert'] = now;
+    }
   }
 }
 
@@ -724,6 +832,7 @@ function damageTower(towerId: number, amount: number) {
     playSound('towerdamage');
     gameState.shakeIntensity = 0.8;
     window.dispatchEvent(new CustomEvent('tower-destroyed', { detail: tower.label }));
+    triggerDialogue(`CRITICAL: Tower ${tower.label} has been neutralized! Defense grid failing.`);
 
     // Check if ALL towers destroyed — game over
     const aliveTowerCount = gameState.towers.filter(t => t.alive).length;
@@ -891,6 +1000,11 @@ export function gameTick(delta: number, playerPos: [number, number, number]) {
     if (gameState.waveTimer <= 0) {
       spawnWave();
       gameState.waveCooldown = Math.max(2, 4 - gameState.wave * 0.2);
+      
+      // Narrative milestones
+      if (gameState.wave === 3) triggerDialogue("District 03 secured. Portfolio projects are uploading to the cloud.");
+      if (gameState.wave === 5) triggerDialogue("Motherships detected. High-level AI architectures approaching!");
+      if (gameState.wave === 8) triggerDialogue("Final wave approaching. Show them what Silicon City can do, Tejas!", 5);
     }
   }
   if (aliveEnemies.length === 0 && gameState.waveInProgress && gameState.wave > 0) {
@@ -1154,10 +1268,106 @@ export function gameTick(delta: number, playerPos: [number, number, number]) {
   gameState.shakeIntensity *= 0.9;
   if (gameState.shakeIntensity < 0.01) gameState.shakeIntensity = 0;
 
+  // === UPDATE ROCKETS — homing & AOE ===
+  for (let i = 0; i < gameState.rockets.length; i++) {
+    const r = gameState.rockets[i];
+    if (!r.alive) continue;
+    r.age += dt;
+    if (r.age > 4.0) { r.alive = false; continue; }
+
+    const speed = 40 + r.age * 20; // accelerate
+
+    // Homing logic
+    const target = gameState.enemies.find(e => e.id === r.targetId && e.alive);
+    if (target) {
+      const rx = target.position[0] - r.position[0];
+      const ry = target.position[1] - r.position[1];
+      const rz = target.position[2] - r.position[2];
+      const rd = Math.sqrt(rx * rx + ry * ry + rz * rz);
+      if (rd > 0.1) {
+        const homingStr = 2.5 * dt;
+        r.velocity[0] = r.velocity[0] * (1 - homingStr) + (rx / rd) * speed * homingStr;
+        r.velocity[1] = r.velocity[1] * (1 - homingStr) + (ry / rd) * speed * homingStr;
+        r.velocity[2] = r.velocity[2] * (1 - homingStr) + (rz / rd) * speed * homingStr;
+      }
+    }
+
+    r.position[0] += r.velocity[0] * dt;
+    r.position[1] += r.velocity[1] * dt;
+    r.position[2] += r.velocity[2] * dt;
+
+    // Rocket → UFO hit
+    for (let j = 0; j < gameState.enemies.length; j++) {
+      const ufo = gameState.enemies[j];
+      if (!ufo.alive) continue;
+      const dx = r.position[0] - ufo.position[0];
+      const dy = r.position[1] - ufo.position[1];
+      const dz = r.position[2] - ufo.position[2];
+      const dSq = dx * dx + dy * dy + dz * dz;
+      const hitRadius = UFO_CONFIGS[ufo.type].size + 1.2;
+
+      if (dSq < hitRadius * hitRadius) {
+        r.alive = false;
+        // AOE EXPLOSION
+        gameState.explosions.push({
+          position: [...r.position],
+          age: 0,
+          alive: true,
+          scale: 4.0
+        });
+
+        // Damage nearby enemies
+        for (let k = 0; k < gameState.enemies.length; k++) {
+          const u2 = gameState.enemies[k];
+          if (!u2.alive) continue;
+          const aoeX = r.position[0] - u2.position[0];
+          const aoeY = r.position[1] - u2.position[1];
+          const aoeZ = r.position[2] - u2.position[2];
+          const aoeDistSq = aoeX * aoeX + aoeY * aoeY + aoeZ * aoeZ;
+          if (aoeDistSq < 100) { // 10m radius
+            u2.hp -= 120; // Heavy damage
+            if (u2.hp <= 0) killEnemy(u2);
+          }
+        }
+        playSound('kill');
+        break;
+      }
+    }
+  }
+
+  // === UPDATE DIALOGUES ===
+  if (gameState.currentDialogue) {
+    gameState.dialogueTimer -= dt;
+    if (gameState.dialogueTimer <= 0) {
+      gameState.currentDialogue = null;
+    }
+  } else if (gameState.dialogueQueue.length > 0) {
+    gameState.currentDialogue = gameState.dialogueQueue.shift()!;
+    gameState.dialogueTimer = gameState.currentDialogue.duration;
+    playSound('dialogue');
+  }
+
+  // === BOOST & ROCKET RECHARGE ===
+  if (gameState.isBoosting && gameState.boostEnergy > 0) {
+    gameState.boostEnergy = Math.max(0, gameState.boostEnergy - 30 * dt);
+  } else {
+    gameState.boostEnergy = Math.min(gameState.maxBoostEnergy, gameState.boostEnergy + 15 * dt);
+    gameState.isBoosting = false;
+  }
+
+  gameState.rocketRechargeTimer += dt;
+  if (gameState.rocketRechargeTimer > 8) { // rocket every 8s
+    if (gameState.rocketCount < gameState.maxRockets) {
+      gameState.rocketCount++;
+    }
+    gameState.rocketRechargeTimer = 0;
+  }
+
   // === CLEANUP DEAD OBJECTS — every frame, fast in-place compaction ===
   compactArray(gameState.bullets);
   compactArray(gameState.enemyBullets);
   compactArray(gameState.explosions);
+  compactArray(gameState.rockets);
 
   // Less frequent cleanups for less-active arrays
   if (gameState.stats.timeSurvived % 1 < dt) {

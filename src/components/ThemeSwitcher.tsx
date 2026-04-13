@@ -1,13 +1,15 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { Palette, Gamepad2 } from 'lucide-react';
+import { Palette, Gamepad2, FileText } from 'lucide-react';
 import { themes, setTheme, themeState } from '@/three/themeState';
 import { cameraMode } from '@/three/CameraRig';
+import { usePortfolio } from '@/hooks/usePortfolio';
 
 const ThemeSwitcher = () => {
   const [open, setOpen] = useState(false);
   const [activeId, setActiveId] = useState(themeState.currentId);
   const [droneActive, setDroneActive] = useState(false);
+  const data = usePortfolio();
 
   const handleSelect = (id: string) => {
     setTheme(id);
@@ -39,6 +41,26 @@ const ThemeSwitcher = () => {
 
   return (
     <div className="fixed bottom-10 right-6 z-50 hidden md:flex flex-col items-center gap-3">
+      
+      {/* Resume Document Button */}
+      {data?.social?.resumeUrl && (
+        <motion.a
+          href={data.social.resumeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer border-2 transition-all duration-300"
+          style={{
+            borderColor: 'rgba(255,255,255,0.15)',
+            background: 'rgba(10,5,20,0.9)',
+            backdropFilter: 'blur(24px)',
+          }}
+          whileHover={{ scale: 1.1, borderColor: 'rgba(5,217,232,0.5)', y: -2 }}
+          whileTap={{ scale: 0.95 }}
+          title="View Resume"
+        >
+          <FileText size={18} style={{ color: 'rgba(5,217,232,0.8)' }} />
+        </motion.a>
+      )}
 
       {/* Drone Mode Button */}
       <motion.button

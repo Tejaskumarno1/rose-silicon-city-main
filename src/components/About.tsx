@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
 import { Target, GraduationCap, BookOpen } from 'lucide-react';
+import { usePortfolio } from '@/hooks/usePortfolio';
 
 const About = () => {
-  const coursework = ['DSA', 'Operating Systems', 'DBMS', 'Computer Networks'];
+  const { about } = usePortfolio();
+  const coursework = about?.coursework || [];
 
   return (
     <section id="about" className="relative min-h-screen flex items-center justify-center px-4 py-32 z-10">
@@ -53,27 +55,25 @@ const About = () => {
                 <div className="absolute top-0 left-[-2px] w-[2px] h-4" style={{ backgroundColor: '#ff2a6d' }} />
                 <div className="absolute bottom-0 left-[-2px] w-[2px] h-4" style={{ backgroundColor: '#ff2a6d' }} />
                 <p className="text-white/70 font-body text-base md:text-lg leading-relaxed md:leading-loose">
-                  3rd-year CSE undergrad at SR University (Class of 2027) specialising in
-                  <span className="text-white font-medium"> AI/ML</span> and
-                  <span className="text-white font-medium"> full-stack development</span>.
-                  150+ LeetCode problems solved; national/finalist rounds in 4 hackathons. Seeking a software engineering internship in backend, AI, or product engineering.
+                  {about?.description || 'Loading description...'}
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              {['AI / ML', 'Full Stack', '150+ LC'].map((tag, i) => {
-                const colors = ['#ff2a6d', '#05d9e8', '#b743e8'];
+              {(about?.tags || []).map((tag: string, i: number) => {
+                const colors = ['#ff2a6d', '#05d9e8', '#b743e8', '#ffb800'];
+                const color = colors[i % colors.length];
                 return (
                   <motion.div
                     key={tag}
                     className="flex items-center justify-center p-4 rounded-xl font-mono text-xs tracking-widest uppercase border-2 cursor-default"
-                    style={{ borderColor: `${colors[i]}25`, background: `${colors[i]}08`, color: colors[i] }}
+                    style={{ borderColor: `${color}25`, background: `${color}08`, color: color }}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.4 + i * 0.1 }}
-                    whileHover={{ borderColor: `${colors[i]}50`, boxShadow: `0 0 15px ${colors[i]}20` }}
+                    whileHover={{ borderColor: `${color}50`, boxShadow: `0 0 15px ${color}20` }}
                   >
                     {tag}
                   </motion.div>
@@ -108,18 +108,18 @@ const About = () => {
 
               <div className="flex justify-between items-start mb-8">
                 <div>
-                  <p className="text-white font-display text-2xl md:text-3xl mb-1">SR University</p>
-                  <p className="text-white/40 font-mono text-xs uppercase tracking-widest">Computer Science Eng.</p>
+                  <p className="text-white font-display text-2xl md:text-3xl mb-1">{about?.education?.school || 'SR University'}</p>
+                  <p className="text-white/40 font-mono text-xs uppercase tracking-widest">{about?.education?.degree || 'Computer Science'}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-4xl md:text-5xl font-display font-bold leading-none mb-1" style={{ color: '#05d9e8' }}>7.68</div>
+                  <div className="text-4xl md:text-5xl font-display font-bold leading-none mb-1" style={{ color: '#05d9e8' }}>{about?.education?.cgpa || '0.0'}</div>
                   <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/30">CGPA</div>
                 </div>
               </div>
 
               <div className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-black/40 border border-white/5">
                 <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#05d9e8' }} />
-                <span className="text-white/60 font-mono text-xs uppercase tracking-widest">2023 — 2027</span>
+                <span className="text-white/60 font-mono text-xs uppercase tracking-widest">{about?.education?.years || '2023 - 2027'}</span>
               </div>
             </div>
 

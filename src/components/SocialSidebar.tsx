@@ -1,14 +1,20 @@
 import { motion } from 'framer-motion';
-import { Github, Linkedin, Code2, Mail } from 'lucide-react'; // Using Code2 for Leetcode
-
-const socialLinks = [
-  { icon: Linkedin, href: 'https://linkedin.com/in/boddu-tejas-kumar', label: 'LinkedIn' },
-  { icon: Github, href: 'https://github.com/Tejaskumarno1', label: 'GitHub' },
-  { icon: Code2, href: 'https://leetcode.com', label: 'LeetCode' },
-  { icon: Mail, href: 'mailto:tejaskumarwgl@gmail.com', label: 'Email' },
-];
+import { Github, Linkedin, Code2, Mail } from 'lucide-react';
+import { usePortfolio } from '@/hooks/usePortfolio';
 
 const SocialSidebar = () => {
+  const data = usePortfolio();
+  const social = data?.social || {};
+
+  const socialLinks = [
+    { icon: Linkedin, href: social.linkedin, label: 'LinkedIn' },
+    { icon: Github, href: social.github, label: 'GitHub' },
+    { icon: Code2, href: social.leetcode, label: 'LeetCode' },
+    { icon: Mail, href: social.email ? (social.email.includes('@') ? `mailto:${social.email}` : social.email) : '', label: 'Email' },
+  ].filter(link => !!link.href);
+
+  if (socialLinks.length === 0) return null;
+
   return (
     <motion.div
       className="fixed bottom-10 left-6 z-40 hidden md:flex flex-col items-center gap-6 px-2.5 py-4 glass-card-strong gradient-border rounded-full"

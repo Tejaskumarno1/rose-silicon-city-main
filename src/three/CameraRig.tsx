@@ -106,14 +106,23 @@ export const CameraRig = () => {
       }
     };
 
+    // Right-click for rockets
+    const onMouseDown = (e: MouseEvent) => {
+      if (cameraMode.free && e.button === 2) {
+        window.dispatchEvent(new CustomEvent('drone-fire-rocket'));
+      }
+    };
+
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('drone-mousemove', onDroneMouseMove as EventListener);
     window.addEventListener('drone-toggle', onDroneToggle);
 
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('drone-mousemove', onDroneMouseMove as EventListener);
       window.removeEventListener('drone-toggle', onDroneToggle);
     };
@@ -165,14 +174,20 @@ export const CameraRig = () => {
       _up.set(0, 1, 0);
 
       _thrust.set(0, 0, 0);
-      const speed = k['ShiftLeft'] || k['ShiftRight'] ? 25 : 12;
+      
+      // Boost logic
+      const isBoostingRequested = k['ShiftLeft'] || k['ShiftRight'];
+      const canBoost = isBoostingRequested && gameState.boostEnergy > 5;
+      gameState.isBoosting = canBoost;
+      
+      const speed = canBoost ? 45 : 12;
 
       if (k['KeyW']) _thrust.add(_forward);
       if (k['KeyS']) _thrust.sub(_forward);
       if (k['KeyA']) _thrust.sub(_right);
       if (k['KeyD']) _thrust.add(_right);
       if (k['Space']) _thrust.add(_up);
-      if (k['KeyC'] || k['ControlLeft']) _thrust.sub(_up);
+      if (k['KeyC'] || k['ControlLeft'] || k['KeyX']) _thrust.sub(_up);
 
       if (k['ArrowLeft']) yaw.current += 2.0 * dt;
       if (k['ArrowRight']) yaw.current -= 2.0 * dt;

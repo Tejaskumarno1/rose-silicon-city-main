@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Save, Plus, Trash2, Download, Briefcase, Brain, Award, ArrowLeft, Eye, ArrowUp, ArrowDown, User } from 'lucide-react';
+import { Save, Plus, Trash2, Download, Briefcase, Brain, Award, ArrowLeft, Eye, ArrowUp, ArrowDown, User, Github, Rocket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import portfolioData from '../data/portfolio.json';
@@ -37,6 +37,10 @@ const Admin = () => {
   
   const [activeTab, setActiveTab] = useState<'projects' | 'skills' | 'certifications' | 'about'>('projects');
   const [isDirty, setIsDirty] = useState(false);
+  const [githubToken, setGithubToken] = useState(() => localStorage.getItem('github_token') || '');
+  const [githubRepo, setGithubRepo] = useState(() => localStorage.getItem('github_repo') || 'Tejaskumarno1/rose-silicon-city-main');
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [showConfig, setShowConfig] = useState(false);
 
   // Sync across tabs if user has multiple open (same as hook)
   useEffect(() => {
@@ -62,6 +66,66 @@ const Admin = () => {
     localStorage.setItem('portfolio_draft', JSON.stringify(data));
     setIsDirty(false);
     toast.success('Changes saved to browser storage!');
+  };
+
+  const pushToGitHub = async () => {
+    if (!githubToken || !githubRepo) {
+      setShowConfig(true);
+      toast.error('Please provide GitHub Credentials first!');
+      return;
+    }
+
+    try {
+      setIsDeploying(true);
+      const toastId = toast.loading('Initiating deployment sequence...', { duration: Infinity });
+      
+      const fileUrl = `https://api.github.com/repos/${githubRepo}/contents/src/data/portfolio.json`;
+      
+      const getRes = await fetch(fileUrl, {
+        headers: {
+          'Authorization': `Bearer ${githubToken}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+      
+      let sha = null;
+      if (getRes.ok) {
+        const getJson = await getRes.json();
+        sha = getJson.sha;
+      } else if (getRes.status !== 404) {
+        throw new Error('Could not read repository. Check token & permissions.');
+      }
+      
+      const jsonContent = JSON.stringify(data, null, 2);
+      const encodedContent = btoa(unescape(encodeURIComponent(jsonContent)));
+      
+      const putRes = await fetch(fileUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${githubToken}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: 'chore(content): Update portfolio data via Live Admin CMS',
+          content: encodedContent,
+          ...(sha && { sha })
+        })
+      });
+      
+      if (!putRes.ok) throw new Error('Failed to commit to GitHub.');
+      
+      toast.success('Successfully deployed! Vercel is building the update.', { id: toastId });
+      
+      localStorage.setItem('github_token', githubToken);
+      localStorage.setItem('github_repo', githubRepo);
+      setIsDirty(false);
+    } catch (e: any) {
+      toast.error(e.message || 'Deployment error');
+      toast.dismiss(); // Fallback dismiss loading
+    } finally {
+      setIsDeploying(false);
+    }
   };
 
   const exportJSON = () => {
@@ -205,21 +269,72 @@ const Admin = () => {
             <p className="text-white/40 font-mono text-sm mt-2">Dataroom Administration & Portfolio Sync</p>
           </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={saveToLocal}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-mono text-xs tracking-widest uppercase transition-all ${isDirty ? 'bg-[#05d9e8] text-black shadow-[0_0_20px_rgba(5,217,232,0.4)]' : 'bg-white/5 text-white/50 border border-white/10'}`}
-            >
-              <Save size={16} />
-              Save Draft
-            </button>
-            <button
-              onClick={exportJSON}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all font-mono text-xs tracking-widest uppercase"
-            >
-              <Download size={16} />
-              Export JSON
-            </button>
+          <div className="flex flex-col gap-3 items-end">
+            <div className="flex gap-3 flex-wrap justify-end">
+              <button
+                onClick={() => setShowConfig(!showConfig)}
+                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all font-mono text-xs tracking-widest uppercase text-white/60 hover:text-white"
+                title="Configure GitHub Credentials"
+              >
+                <Github size={16} /> Config
+              </button>
+              <button
+                onClick={pushToGitHub}
+                disabled={isDeploying}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-mono text-xs tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(183,67,232,0.3)] ${isDeploying ? 'bg-[#b743e8]/50 cursor-wait' : 'bg-[#b743e8] text-white hover:bg-[#b743e8]/80'}`}
+              >
+                <Rocket size={16} className={isDeploying ? 'animate-bounce' : ''} />
+                {isDeploying ? 'Deploying...' : 'Deploy to Live'}
+              </button>
+              <button
+                onClick={saveToLocal}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-mono text-xs tracking-widest uppercase transition-all ${isDirty ? 'bg-[#05d9e8] text-black shadow-[0_0_20px_rgba(5,217,232,0.4)]' : 'bg-white/5 text-white/50 border border-white/10'}`}
+              >
+                <Save size={16} />
+                Save Draft
+              </button>
+              <button
+                onClick={exportJSON}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all font-mono text-xs tracking-widest uppercase"
+              >
+                <Download size={16} />
+                JSON
+              </button>
+            </div>
+            
+            <AnimatePresence>
+              {showConfig && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: 'auto' }}
+                  exit={{ opacity: 0, y: -10, height: 0 }}
+                  className="w-full max-w-md bg-black/40 border border-[#b743e8]/30 p-4 rounded-xl backdrop-blur-xl"
+                >
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] font-mono text-white/40 tracking-widest uppercase mb-1">GitHub Personal Access Token</label>
+                      <input
+                        type="password"
+                        value={githubToken}
+                        onChange={(e) => setGithubToken(e.target.value)}
+                        placeholder="ghp_xxxxxxxxxxxx"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-[#b743e8]/50 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono text-white/40 tracking-widest uppercase mb-1">Repository Name</label>
+                      <input
+                        value={githubRepo}
+                        onChange={(e) => setGithubRepo(e.target.value)}
+                        placeholder="User/RepoName"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-[#b743e8]/50 focus:outline-none"
+                      />
+                    </div>
+                    <p className="text-[10px] text-white/30 font-mono">Tokens are saved locally in browser storage. Ensure token has 'repo' permissions.</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 

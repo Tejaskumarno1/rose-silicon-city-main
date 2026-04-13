@@ -4,10 +4,23 @@
       "title": "AI Multi-Agent Recruitment SaaS",
       "subtitle": "MAHAYUDH",
       "description": "Architected a Jarvis-like system of 8 specialised AI agents handling the full recruitment pipeline — JD parsing, resume scoring, candidate matching, automated screening calls, ranking, and skill assessment — cutting simulated recruiter effort by ~60%.",
-      "tech": ["Python", "TensorFlow", "React.js", "Node.js", "LangChain", "AWS"],
+      "tech": [
+        "Python",
+        "TensorFlow",
+        "React.js",
+        "Node.js",
+        "LangChain",
+        "AWS"
+      ],
       "stats": [
-        { "label": "Effort Reduced", "value": "60%" },
-        { "label": "AI Agents", "value": "8" }
+        {
+          "label": "Effort Reduced",
+          "value": "60%"
+        },
+        {
+          "label": "AI Agents",
+          "value": "8"
+        }
       ],
       "color": "#05d9e8",
       "githubUrl": "",
@@ -17,14 +30,85 @@
       "title": "AI Traffic Optimizer",
       "subtitle": "Computer Vision",
       "description": "Designed a real-time multi-lane traffic monitoring system using OpenCV and a custom-trained deep learning model to detect congestion patterns and rule violations with ~89% accuracy. Built an automated signal control engine that dynamically recalculates timings.",
-      "tech": ["Python", "OpenCV", "TensorFlow", "Deep Learning"],
+      "tech": [
+        "Python",
+        "OpenCV",
+        "TensorFlow",
+        "Deep Learning"
+      ],
       "stats": [
-        { "label": "Accuracy", "value": "89%" },
-        { "label": "Wait Time", "value": "-30%" }
+        {
+          "label": "Accuracy",
+          "value": "89%"
+        },
+        {
+          "label": "Wait Time",
+          "value": "-30%"
+        }
       ],
       "color": "#ff2a6d",
       "githubUrl": "",
       "liveUrl": ""
+    },
+    {
+      "title": "New Project",
+      "subtitle": "Category",
+      "description": "Description here...",
+      "tech": [
+        "React"
+      ],
+      "stats": [
+        {
+          "label": "Stat",
+          "value": "100"
+        }
+      ],
+      "color": "#05d9e8"
+    },
+    {
+      "title": "New Project111111",
+      "subtitle": "Category",
+      "description": "Description here...",
+      "tech": [
+        "React"
+      ],
+      "stats": [
+        {
+          "label": "Stat",
+          "value": "100"
+        }
+      ],
+      "color": "#05d9e8"
+    },
+    {
+      "title": "New Project22222",
+      "subtitle": "Category",
+      "description": "Description here...",
+      "tech": [
+        "React"
+      ],
+      "stats": [
+        {
+          "label": "Stat",
+          "value": "100"
+        }
+      ],
+      "color": "#05d9e8"
+    },
+    {
+      "title": "New Project",
+      "subtitle": "Category",
+      "description": "Description here...",
+      "tech": [
+        "React"
+      ],
+      "stats": [
+        {
+          "label": "Stat",
+          "value": "100"
+        }
+      ],
+      "color": "#05d9e8"
     }
   ],
   "skills": [
@@ -34,7 +118,14 @@
       "label": "LANG",
       "color": "#ff2a6d",
       "icon": "Code2",
-      "skills": ["Python", "Java", "JavaScript", "SQL", "DSA", "OOP"]
+      "skills": [
+        "Python",
+        "Java",
+        "JavaScript",
+        "SQL",
+        "DSA",
+        "OOP"
+      ]
     },
     {
       "id": "webcloud",
@@ -42,7 +133,13 @@
       "label": "WEB",
       "color": "#05d9e8",
       "icon": "Globe",
-      "skills": ["React.js", "Node.js", "HTML/CSS", "AWS", "REST APIs"]
+      "skills": [
+        "React.js",
+        "Node.js",
+        "HTML/CSS",
+        "AWS",
+        "REST APIs"
+      ]
     },
     {
       "id": "aiml",
@@ -50,7 +147,13 @@
       "label": "AI",
       "color": "#b743e8",
       "icon": "Brain",
-      "skills": ["TensorFlow", "OpenCV", "scikit-learn", "NLP", "LangChain"]
+      "skills": [
+        "TensorFlow",
+        "OpenCV",
+        "scikit-learn",
+        "NLP",
+        "LangChain"
+      ]
     },
     {
       "id": "tools",
@@ -58,7 +161,13 @@
       "label": "TOOLS",
       "color": "#ffb800",
       "icon": "Wrench",
-      "skills": ["Git", "GitHub", "Postman", "MySQL", "VS Code"]
+      "skills": [
+        "Git",
+        "GitHub",
+        "Postman",
+        "MySQL",
+        "VS Code"
+      ]
     }
   ],
   "certifications": [
@@ -97,14 +206,23 @@
   ],
   "about": {
     "description": "3rd-year CSE undergrad at SR University (Class of 2027) specialising in AI/ML and full-stack development. 150+ LeetCode problems solved; national/finalist rounds in 4 hackathons. Seeking a software engineering internship in backend, AI, or product engineering.",
-    "tags": ["AI / ML", "Full Stack", "150+ LC"],
+    "tags": [
+      "AI / ML",
+      "Full Stack",
+      "150+ LC"
+    ],
     "education": {
       "school": "SR University",
       "degree": "Computer Science Eng.",
       "cgpa": "7.68",
       "years": "2023 — 2027"
     },
-    "coursework": ["DSA", "Operating Systems", "DBMS", "Computer Networks"]
+    "coursework": [
+      "DSA",
+      "Operating Systems",
+      "DBMS",
+      "Computer Networks"
+    ]
   },
   "social": {
     "resumeUrl": "/resume.pdf",

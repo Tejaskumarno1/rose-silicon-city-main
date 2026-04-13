@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { usePortfolio } from '@/hooks/usePortfolio';
 
 const Hero = () => {
+  const data = usePortfolio();
   const [subtitle, setSubtitle] = useState('');
   const fullSubtitle = 'AI/ML · Full-Stack · CSE Undergrad';
 
@@ -62,24 +64,39 @@ const Hero = () => {
             />
           </p>
 
-          <motion.a
-            href="#about"
-            className="inline-flex items-center gap-3 px-10 py-5 glass-card-strong text-white font-mono text-sm tracking-[0.2em] uppercase group cursor-pointer gradient-border"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5 }}
-          >
-            Enter My World
-            <motion.span
-              className="text-accent"
-              animate={{ y: [0, 5, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <motion.a
+              href="#about"
+              className="inline-flex items-center gap-3 px-10 py-5 glass-card-strong text-white font-mono text-sm tracking-[0.2em] uppercase group cursor-pointer gradient-border"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.5 }}
             >
-              ↓
-            </motion.span>
-          </motion.a>
+              Enter My World
+              <motion.span
+                className="text-accent"
+                animate={{ y: [0, 5, 0] }}
+                transition={{ repeat: Infinity, duration: 1.5 }}
+              >
+                ↓
+              </motion.span>
+            </motion.a>
+            <motion.a
+              href={data?.social?.resumeUrl || '/resume.pdf'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 px-10 py-5 rounded-lg border border-cyan-400/30 bg-cyan-400/10 text-cyan-400 font-mono text-sm tracking-[0.2em] uppercase group cursor-pointer hover:bg-cyan-400/20 hover:border-cyan-400/50 hover:shadow-[0_0_20px_rgba(5,217,232,0.3)] transition-all"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.6 }}
+            >
+              View Resume
+            </motion.a>
+          </div>
         </motion.div>
 
         {/* Floating decorative elements */}

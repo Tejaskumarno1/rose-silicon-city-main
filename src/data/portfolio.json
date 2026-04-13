@@ -64,6 +64,51 @@
         }
       ],
       "color": "#05d9e8"
+    },
+    {
+      "title": "New Project111111",
+      "subtitle": "Category",
+      "description": "Description here...",
+      "tech": [
+        "React"
+      ],
+      "stats": [
+        {
+          "label": "Stat",
+          "value": "100"
+        }
+      ],
+      "color": "#05d9e8"
+    },
+    {
+      "title": "New Project22222",
+      "subtitle": "Category",
+      "description": "Description here...",
+      "tech": [
+        "React"
+      ],
+      "stats": [
+        {
+          "label": "Stat",
+          "value": "100"
+        }
+      ],
+      "color": "#05d9e8"
+    },
+    {
+      "title": "New Project",
+      "subtitle": "Category",
+      "description": "Description here...",
+      "tech": [
+        "React"
+      ],
+      "stats": [
+        {
+          "label": "Stat",
+          "value": "100"
+        }
+      ],
+      "color": "#05d9e8"
     }
   ],
   "skills": [
